@@ -19,13 +19,13 @@ parser.parse!(ARGV)
 year = options[:y].to_i
 month = options[:m].to_i
 
-first_day = Date.new(year, month, 1)
-last_day = Date.new(first_day.year, first_day.month, -1)
+first_date = Date.new(year, month, 1)
+last_date = Date.new(first_date.year, first_date.month, -1)
 
-date_weekdays = (first_day..last_day).to_h { |d| [d.day, d.wday] }
+date_weekdays = (first_date..last_date).to_h { |d| [d.day, d.wday] }
 
 calendar_cells = []
-first_day.strftime('%w').to_i.times{calendar_cells.push "   "}
+first_date.strftime('%w').to_i.times{calendar_cells.push "   "}
 date_weekdays.each do |day, weekday|
   if weekday == 6 && day < 10
     calendar_cells.push " #{day}\n"
