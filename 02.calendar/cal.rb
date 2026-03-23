@@ -22,22 +22,22 @@ month = options[:m].to_i
 first_date = Date.new(year, month, 1)
 last_date = Date.new(first_date.year, first_date.month, -1)
 
-date_weekdays = (first_date..last_date).to_h { |d| [d.day, d.wday] }
-
 calendar_cells = []
-first_date.strftime('%w').to_i.times{calendar_cells.push "   "}
-date_weekdays.each do |day, weekday|
-  if weekday == 6 && day < 10
-    calendar_cells.push " #{day}\n"
-  elsif weekday == 6
-    calendar_cells.push "#{day}\n"
-  elsif day < 10
-    calendar_cells.push " #{day} "
+
+calendar_cells += Array.new(first_date.wday, "   ")
+
+(first_date..last_date).each do |date|
+  if date.saturday? && date.day < 10
+    calendar_cells.push " #{date.day}\n"
+  elsif date.saturday?
+    calendar_cells.push "#{date.day}\n"
+  elsif date.day < 10
+    calendar_cells.push " #{date.day} "
   else
-    calendar_cells.push "#{day} "
+    calendar_cells.push "#{date.day} "
   end
 end
 
-puts "#{first_day.month}月 #{first_day.year}".center(20)
+puts "#{month}月 #{year}".center(20)
 puts "日 月 火 水 木 金 土"
 puts calendar_cells.join
