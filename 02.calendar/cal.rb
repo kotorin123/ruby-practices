@@ -24,20 +24,15 @@ last_date = Date.new(first_date.year, first_date.month, -1)
 
 calendar_cells = []
 
-calendar_cells += Array.new(first_date.wday, "   ")
+calendar_cells += Array.new(first_date.wday, "  ")
 
 (first_date..last_date).each do |date|
-  if date.saturday? && date.day < 10
-    calendar_cells.push " #{date.day}\n"
-  elsif date.saturday?
-    calendar_cells.push "#{date.day}\n"
-  elsif date.day < 10
-    calendar_cells.push " #{date.day} "
-  else
-    calendar_cells.push "#{date.day} "
-  end
+  calendar_cells.push "#{date.day}".rjust(2)
 end
 
 puts "#{month}月 #{year}".center(20)
 puts "日 月 火 水 木 金 土"
-puts calendar_cells.join
+
+calendar_cells.each_slice(7) do |week|
+  puts week.join(" ")
+end
