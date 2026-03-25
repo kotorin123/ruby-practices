@@ -24,10 +24,10 @@ last_date = Date.new(first_date.year, first_date.month, -1)
 
 calendar_cells = []
 
-calendar_cells += Array.new(first_date.wday, "  ")
+calendar_cells = Array.new(first_date.wday, "  ")
 
 (first_date..last_date).each do |date|
-  calendar_cells.push "#{date.day}".rjust(2)
+  calendar_cells.push date.day.to_s.rjust(2)
 end
 
 puts "#{month}月 #{year}".center(20)
