@@ -16,19 +16,19 @@ end
 
 frames = shots.each_slice(2).to_a
 
-frames_new = frames.each_with_index do |frame, i|
-  if [10, 11].include?(i)
+scores_with_bonus = frames.each_with_object([]).with_index do |(frame, memo), i|
+  if i >= 10
     next
   elsif frame[0] == 10 && frames[i + 1][0] == 10 # 連続strike
-    frame.push(10, frames[i + 2][0])
+    memo.push(frame, 10, frames[i + 2][0])
   elsif frame[0] == 10 # strike
-    frame.push(frames[i + 1].sum)
+    memo.push(frame, frames[i + 1].sum)
   elsif frame.sum == 10 # spare
-    frame.push(frames[i + 1][0])
+    memo.push(frame, frames[i + 1][0])
+  else
+    memo.push(frame)
   end
 end
 
-frames_new.slice!(10..)
-
-point = frames.sum(&:sum)
+point = scores_with_bonus.flatten.sum
 puts point
