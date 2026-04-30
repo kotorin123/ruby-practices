@@ -22,6 +22,8 @@ end
 
 def split_into_columns(padding_list)
   rows_per_column = padding_list.size.ceildiv(COLUMN_COUNT)
+  return padding_list if rows_per_column.zero?
+
   column_groups = padding_list.each_slice(rows_per_column).to_a
 
   max_rows = column_groups[0].size
