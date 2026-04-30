@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+COLUMN_COUNT = 3
+
 def main
   dirlist = Dir.glob('*')
   padding_list = padding(dirlist)
@@ -16,22 +18,14 @@ def padding(dirlist)
 end
 
 def split_into_columns(padding_list)
-  column_count = 3
-  adjust_length = padding_list.size
-
-  adjust_length += 1 until (adjust_length % column_count).zero?
-
-  rows_per_column = adjust_length / column_count
+  rows_per_column = padding_list.size.ceildiv(COLUMN_COUNT)
   column_groups = padding_list.each_slice(rows_per_column).to_a
 
   max_rows = column_groups[0].size
   column_groups.each do |column|
-    next unless column.size != max_rows
+    next if column.size == max_rows
 
-    missing_count = max_rows - column.size
-    missing_count.times do
-      column.push nil
-    end
+    column.fill(nil, column.size...max_rows)
   end
 end
 
