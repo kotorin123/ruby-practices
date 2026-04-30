@@ -7,7 +7,10 @@ def main
   dirlist = Dir.glob('*')
   padding_list = padding(dirlist)
   column_groups = split_into_columns(padding_list)
-  output_format(column_groups)
+
+  column_groups.transpose.each do |row|
+    puts row.join
+  end
 end
 
 def padding(dirlist)
@@ -26,12 +29,6 @@ def split_into_columns(padding_list)
     next if column.size == max_rows
 
     column.fill(nil, column.size...max_rows)
-  end
-end
-
-def output_format(column_groups)
-  column_groups.transpose.each do |row|
-    puts row.join
   end
 end
 
