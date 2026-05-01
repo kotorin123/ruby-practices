@@ -26,11 +26,10 @@ def split_into_columns(padding_list)
 
   column_groups = padding_list.each_slice(rows_per_column).to_a
 
-  max_rows = column_groups[0].size
   column_groups.each do |column|
-    next if column.size == max_rows
+    next if column.size == rows_per_column
 
-    column.fill(nil, column.size...max_rows)
+    column.fill(nil, column.size...rows_per_column)
   end
 end
 
