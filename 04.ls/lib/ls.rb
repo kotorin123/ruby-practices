@@ -8,7 +8,8 @@ COLUMN_COUNT = 3
 def main
   options = parse_options
   dirlist = Dir.glob('*', options[:a] ? File::FNM_DOTMATCH : 0)
-  padded_filenames = options[:r] ? pad_entries(dirlist).reverse : pad_entries(dirlist)
+  padded_filenames = pad_entries(dirlist)
+  padded_filenames.reverse! if options[:r]
   column_groups = split_into_columns(padded_filenames)
 
   column_groups.transpose.each do |row|
