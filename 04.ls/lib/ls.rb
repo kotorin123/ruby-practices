@@ -9,6 +9,7 @@ def main
   options = parse_options
   dirlist = Dir.glob('*', options[:a] ? File::FNM_DOTMATCH : 0)
   padded_filenames = pad_entries(dirlist)
+  padded_filenames.reverse! if options[:r]
   column_groups = split_into_columns(padded_filenames)
 
   column_groups.transpose.each do |row|
@@ -20,6 +21,7 @@ def parse_options
   opt = OptionParser.new
   options = {}
   opt.on('-a', 'Show all files, including hidden files.') { |v| options[:a] = v }
+  opt.on('-r', 'Show all files, including hidden files.') { |v| options[:r] = v }
   opt.parse!(ARGV)
   options
 end
