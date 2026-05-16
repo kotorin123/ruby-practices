@@ -42,7 +42,7 @@ DISPLAY_ORDER = %w[
 def main
   options = parse_options
   dirlist = Dir.glob('*', options[:a] ? File::FNM_DOTMATCH : 0)
-  file_infos = option_l(dirlist)
+  file_infos = view_details(dirlist)
   padded_filenames = pad_entries(dirlist)
   padded_filenames.reverse! if options[:r]
   file_infos.reverse! if options[:r]
@@ -70,7 +70,7 @@ def parse_options
   options
 end
 
-def option_l(dirlist)
+def view_details(dirlist)
   file_infos = dirlist.map do |name|
     link_stat = File.lstat(name)
     ftype = FTYPE_MAP[link_stat.ftype]
