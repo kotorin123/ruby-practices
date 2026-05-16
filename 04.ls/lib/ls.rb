@@ -27,6 +27,18 @@ FTYPE_MAP = {
   'blockSpecial' => 'b'
 }.freeze
 
+DISPLAY_ORDER = %w[
+  permissions
+  nlink
+  uid
+  gid
+  file_size
+  month
+  day
+  time
+  file_name
+].freeze
+
 def main
   options = parse_options
   dirlist = Dir.glob('*', options[:a] ? File::FNM_DOTMATCH : 0)
@@ -39,7 +51,7 @@ def main
   if options[:l]
     print_total_block_size(dirlist)
     file_infos.each do |file_info|
-      puts file_info.join(' ')
+      puts file_info.values_at(*DISPLAY_ORDER).join(' ')
     end
   else
     column_groups.transpose.each do |row|
@@ -66,18 +78,18 @@ def option_l(dirlist)
     month = link_stat.mtime.strftime('%-m月')
     day = link_stat.mtime.strftime('%-d')
 
-    [
-      build_permissions(ftype, link_stat),
-      link_stat.nlink, Etc.getpwuid(link_stat.uid).name,
-      Etc.getgrgid(link_stat.gid).name,
-      build_file_size(ftype, link_stat),
-      month,
-      day,
-      build_time_info(link_stat),
-      build_file_name(name)
-    ]
+    {
+      'permissions' => build_permissions(ftype, link_stat).to_s,
+      'nlink' => link_stat.nlink.to_s,
+      'uid' => Etc.getpwuid(link_stat.uid).name.to_s,
+      'gid' => Etc.getgrgid(link_stat.gid).name.to_s,
+      'file_size' => build_file_size(ftype, link_stat).to_s,
+      'month' => month.to_s,
+      'day' => day.to_s,
+      'time' => build_time_info(link_stat).to_s,
+      'file_name' => build_file_name(name).to_s
+    }
   end
-
   format_file_infos(file_infos)
 end
 
@@ -119,26 +131,34 @@ def build_file_name(name)
 end
 
 def format_file_infos(file_infos)
-  max_length = file_infos.transpose.map do |col|
+  max_length_by_key = max_length(file_infos)
+
+  file_infos.map do |row|
+    row.each_with_object({}) do |(key, value), h|
+      format_file_info =
+        case key
+        when 'nlink', 'file_size', 'day', 'time'
+          value.to_s.rjust(max_length_by_key[key])
+        when 'uid', 'gid'
+          value.to_s.ljust(max_length_by_key[key])
+        when 'month'
+          value.to_s.rjust(3)
+        else
+          value.to_s
+        end
+      h[key] = format_file_info
+    end
+  end
+end
+
+def max_length(file_infos)
+  file_infos_values = file_infos.map(&:values)
+  max_length = file_infos_values.transpose.map do |col|
     col.map do |v|
       v.to_s.length
     end.max
   end
-
-  file_infos.map do |row|
-    row.map.with_index do |value, i|
-      case i
-      when 1, 4, 6, 7
-        value.to_s.rjust(max_length[i])
-      when 2..3
-        value.to_s.ljust(max_length[i])
-      when 5
-        value.to_s.rjust(3)
-      else
-        value.to_s
-      end
-    end
-  end
+  DISPLAY_ORDER.zip(max_length).to_h
 end
 
 def pad_entries(dirlist)
