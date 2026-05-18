@@ -41,19 +41,18 @@ DISPLAY_ORDER = %w[
 
 def main
   options = parse_options
-  dirlist = Dir.glob('*', options[:a] ? File::FNM_DOTMATCH : 0)
-  file_infos = view_details(dirlist)
-  padded_filenames = pad_entries(dirlist)
-  padded_filenames.reverse! if options[:r]
-  file_infos.reverse! if options[:r]
-  column_groups = split_into_columns(padded_filenames)
+  entries = Dir.glob('*', options[:a] ? File::FNM_DOTMATCH : 0)
+  entries.reverse! if options[:r]
 
   if options[:l]
-    print_total_block_size(dirlist)
+    file_infos = view_details(entries)
+    print_total_block_size(entries)
     file_infos.each do |file_info|
       puts file_info.values_at(*DISPLAY_ORDER).join(' ')
     end
   else
+    padded_filenames = pad_entries(entries)
+    column_groups = split_into_columns(padded_filenames)
     column_groups.transpose.each do |row|
       puts row.join
     end
@@ -70,8 +69,8 @@ def parse_options
   options
 end
 
-def view_details(dirlist)
-  file_infos = dirlist.map do |name|
+def view_details(entries)
+  file_infos = entries.map do |name|
     link_stat = File.lstat(name)
     ftype = FTYPE_MAP[link_stat.ftype]
 
@@ -93,8 +92,8 @@ def view_details(dirlist)
   format_file_infos(file_infos)
 end
 
-def print_total_block_size(dirlist)
-  total_block_size = dirlist.sum { |name| File.lstat(name).blocks }
+def print_total_block_size(entries)
+  total_block_size = entries.sum { |name| File.lstat(name).blocks }
   puts "合計 #{total_block_size / 2}" if total_block_size != 0
 end
 
@@ -161,9 +160,9 @@ def max_length(file_infos)
   DISPLAY_ORDER.zip(max_length).to_h
 end
 
-def pad_entries(dirlist)
-  max_length = dirlist.map(&:length).max
-  dirlist.map do |entry|
+def pad_entries(entries)
+  max_length = entries.map(&:length).max
+  entries.map do |entry|
     entry.ljust(max_length + 5)
   end
 end
