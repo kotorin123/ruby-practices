@@ -5,9 +5,8 @@ require 'optparse'
 
 def main
   options = parse_options
-  stdin_is_tty = $stdin.tty?
 
-  if stdin_is_tty
+  if $stdin.tty?
     filenames = ARGV
     file_metrics_list = build_metrics_list_from_argv(filenames)
   else
@@ -15,19 +14,19 @@ def main
     file_metrics_list = build_metrics_list_from_stdin(file_content)
   end
 
-  print_rows(file_metrics_list, options, stdin_is_tty)
+  print_rows(file_metrics_list, options)
 end
 
 def parse_options
-  options = {}
+  options = []
 
   OptionParser.new do |opt|
-    opt.on('-l') { |opt| options[:l] = opt }
-    opt.on('-w') { |opt| options[:w] = opt }
-    opt.on('-c') { |opt| options[:c] = opt }
+    opt.on('-l') { options << :lines_count }
+    opt.on('-w') { options << :words_count }
+    opt.on('-c') { options << :file_size }
   end.parse!
 
-  options = { l: true, w: true, c: true } if options.empty?
+  options = %i[lines_count words_count file_size] if options.empty?
   options
 end
 
@@ -48,8 +47,8 @@ def build_metrics_list_from_stdin(file_content)
   [build_file_metrics(file_content, file_size)]
 end
 
-def print_rows(file_metrics_list, options, stdin_is_tty)
-  rows = format_rows(file_metrics_list, options, stdin_is_tty)
+def print_rows(file_metrics_list, options)
+  rows = format_rows(file_metrics_list, options)
   rows.each { |line| puts line }
 end
 
@@ -71,12 +70,11 @@ def sum_file_metrics(file_metrics_list)
   }
 end
 
-def format_rows(file_metrics_list, options, stdin_is_tty)
-  selected_keys = selected_keys(options)
-  max_size ||= calc_max_width(file_metrics_list, selected_keys, stdin_is_tty)
+def format_rows(file_metrics_list, options)
+  max_size = calc_max_width(file_metrics_list, options)
 
   file_metrics_list.map do |row|
-    values = selected_keys.map do |key|
+    values = options.map do |key|
       row[key].to_s.rjust(max_size)
     end
     values << row[:file_name]
@@ -84,26 +82,13 @@ def format_rows(file_metrics_list, options, stdin_is_tty)
   end
 end
 
-def selected_keys(options)
-  selected_keys = []
+def calc_max_width(file_metrics_list, options)
+  return 0 if options.size == 1 && file_metrics_list.size == 1
+  return 7 if !$stdin.tty?
 
-  selected_keys << :lines_count if options[:l]
-  selected_keys << :words_count if options[:w]
-  selected_keys << :file_size if options[:c]
-
-  selected_keys
-end
-
-def calc_max_width(file_metrics_list, selected_keys, stdin_is_tty)
-  if selected_keys.size == 1 && file_metrics_list.size == 1
-    0
-  elsif !stdin_is_tty
-    7
-  else
-    %i[lines_count words_count file_size].map do |key|
-      file_metrics_list.map { |data| data[key].to_s.size }.max
-    end.max
-  end
+  %i[lines_count words_count file_size].map do |key|
+    file_metrics_list.map { |data| data[key].to_s.size }.max
+  end.max
 end
 
 main
